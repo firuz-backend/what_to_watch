@@ -1,5 +1,4 @@
 from datetime import datetime
-from email import message
 from random import randrange
 
 from flask_sqlalchemy import SQLAlchemy
@@ -25,24 +24,21 @@ class Opinion(db.Model):
 
 class OpinionForm(FlaskForm):
     title = StringField(
-        'Enter cinema name',
-        validators=[
-            DataRequired('Required field'),
-            Length(1, 128, 'invalid name')
-        ]
+        'Введите название фильма',
+        validators=[DataRequired(message='Обязательное поле'), Length(1, 128)],
     )
 
     text = TextAreaField(
-        'Enter your opinion about the film',
-        validators=[DataRequired('Required field')]
+        'Напишите мнение',
+        validators=[DataRequired(message='Обязательное поле')],
     )
 
     source = URLField(
-        'Please privide link - for looking more',
-        validators=[Length(1, 256), Optional()]
+        'Добавьте ссылку на подробный обзор фильма',
+        validators=[Length(1, 256), Optional()],
     )
 
-    submit = SubmitField('Add')
+    submit = SubmitField('Добавить')
 
 
 @app.route('/')
@@ -50,16 +46,10 @@ def index_view():
     quantity = Opinion.query.count()
 
     if not quantity:
-        return 'В базе данных мнений о фильмах нет.'
+        return 'В базе данных записей нет.'
 
     offset_value = randrange(quantity)
     opinion: Opinion = Opinion.query.offset(offset_value).first()
-    return render_template('opinion.html', opinion=opinion)
-
-
-@app.route('/opinions/<int:id>')
-def opinion_view(id):
-    opinion = Opinion.query.get_or_404(id)
     return render_template('opinion.html', opinion=opinion)
 
 
@@ -79,6 +69,12 @@ def add_opinion_view():
 
         return redirect(url_for('opinion_view', id=opinion.id))
     return render_template('add_opinion.html', form=form)
+
+
+@app.route('/opinions/<int:id>')
+def opinion_view(id):
+    opinion = Opinion.query.get_or_404(id)
+    return render_template('opinion.html', opinion=opinion)
 
 
 if __name__ == '__main__':
